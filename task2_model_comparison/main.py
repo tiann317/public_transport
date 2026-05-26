@@ -332,13 +332,6 @@ Why NOT the others:
   - Decision Tree            : overfits individual stops; high variance.
   - Random Forest            : strong, but slightly worse than GBM on
     this dataset; slower to tune.
-
-Next steps (Task 3):
-  - Hyperparameter tuning (learning_rate, n_estimators, max_depth)
-    via GridSearchCV / Optuna.
-  - Evaluate XGBoost / LightGBM as drop-in replacements.
-  - Consider a two-stage model: classifier (delay / no-delay)
-    followed by a GBM regressor on delayed records only.
 """)
 
 print("Saved plots to:", OUTPUT_DIR)
