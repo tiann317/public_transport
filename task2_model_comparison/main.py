@@ -18,9 +18,6 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 
 warnings.filterwarnings("ignore")
 
-# ─────────────────────────────────────────────
-# 0. CONFIGURATION
-# ─────────────────────────────────────────────
 CLEANED_CSV = os.path.join(
     os.path.dirname(__file__),
     "..",
@@ -32,11 +29,8 @@ OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 RANDOM_STATE = 42
-SAMPLE_SIZE = 50_000  # sub-sample for faster CV; full data used for final fit
+SAMPLE_SIZE = 50_000
 
-# ─────────────────────────────────────────────
-# 1. PROBLEM DEFINITION
-# ─────────────────────────────────────────────
 print("=" * 60)
 print("PROBLEM DEFINITION")
 print("=" * 60)
@@ -54,9 +48,6 @@ Key challenges identified in Task 1:
   4. Strong arr→dep coupling (r = 0.956).
 """)
 
-# ─────────────────────────────────────────────
-# 2. LOAD & PREPARE DATA
-# ─────────────────────────────────────────────
 print("=" * 60)
 print("LOADING DATA")
 print("=" * 60)
@@ -65,17 +56,13 @@ df = pd.read_csv(CLEANED_CSV, low_memory=False)
 print(f"Loaded {len(df):,} rows, {df.shape[1]} columns")
 print("Columns:", df.columns.tolist())
 
-# Encode categorical columns
 cat_cols = df.select_dtypes(include="object").columns.tolist()
 for col in cat_cols:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col].astype(str))
 
-# Drop target leakage columns (arr_delay strongly predicts dep_delay but
-# would not be available as a *prior* feature in a real deployment).
-# We keep it as a feature since the problem is stop-level (arr happens first).
 TARGET = "dep_delay"
-DROP_IF = [c for c in ["has_delay"] if c in df.columns]  # derived from target
+DROP_IF = [c for c in ["has_delay"] if c in df.columns]
 features = [c for c in df.columns if c not in [TARGET] + DROP_IF]
 X = df[features]
 y = df[TARGET]
@@ -83,20 +70,16 @@ y = df[TARGET]
 print(f"\nFeatures used ({len(features)}): {features}")
 print(f"Target: {TARGET}  (mean={y.mean():.2f}, std={y.std():.2f})")
 
-# Train / test split (chronological order not enforced here; random split used)
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=RANDOM_STATE
 )
 
-# Sub-sample for cross-validation speed
 idx = np.random.default_rng(RANDOM_STATE).choice(
     len(X_train), size=min(SAMPLE_SIZE, len(X_train)), replace=False
 )
 X_cv, y_cv = X_train.iloc[idx], y_train.iloc[idx]
 
-# ─────────────────────────────────────────────
-# 3. MODEL COMPARISON
-# ─────────────────────────────────────────────
+
 print("\n" + "=" * 60)
 print("MODEL COMPARISON  (5-fold CV on 50 k sample)")
 print("=" * 60)
@@ -130,9 +113,6 @@ for name, model in models.items():
         f"R²={cv_r2.mean():.4f}±{cv_r2.std():.4f}"
     )
 
-# ─────────────────────────────────────────────
-# 4. HOLD-OUT EVALUATION ON TEST SET
-# ─────────────────────────────────────────────
 print("\n" + "=" * 60)
 print("HOLD-OUT TEST SET EVALUATION")
 print("=" * 60)
@@ -141,7 +121,7 @@ test_results = {}
 for name, model in models.items():
     model.fit(X_train, y_train)
     preds = model.predict(X_test)
-    preds = np.maximum(preds, 0)  # delays cannot be negative
+    preds = np.maximum(preds, 0)
     test_results[name] = {
         "MAE": mean_absolute_error(y_test, preds),
         "RMSE": np.sqrt(mean_squared_error(y_test, preds)),
@@ -153,9 +133,6 @@ for name, model in models.items():
         f"R²={test_results[name]['R²']:.4f}"
     )
 
-# ─────────────────────────────────────────────
-# 5. FEATURE IMPORTANCE (CHOSEN MODEL: GBM)
-# ─────────────────────────────────────────────
 gbm_model = models["Gradient Boosting (GBM)"]
 feat_imp = pd.Series(gbm_model.feature_importances_, index=features).sort_values(
     ascending=False
@@ -163,9 +140,6 @@ feat_imp = pd.Series(gbm_model.feature_importances_, index=features).sort_values
 print("\n--- GBM Feature Importances ---")
 print(feat_imp.head(10).to_string())
 
-# ─────────────────────────────────────────────
-# 6. VISUALISATIONS
-# ─────────────────────────────────────────────
 COLORS = {
     "Linear Regression": "#A8C7E8",
     "Ridge Regression": "#7FB3D3",
@@ -189,7 +163,6 @@ for ax, metric in zip(axes, metrics):
     bars = ax.bar(
         range(len(names)), values, color=colors, edgecolor="white", linewidth=1.2
     )
-    # highlight chosen model
     chosen_idx = names.index(CHOSEN)
     bars[chosen_idx].set_edgecolor("#E63946")
     bars[chosen_idx].set_linewidth(2.5)
@@ -295,9 +268,6 @@ plt.savefig(
 )
 plt.close()
 
-# ─────────────────────────────────────────────
-# 7. SUMMARY TABLE
-# ─────────────────────────────────────────────
 print("\n" + "=" * 60)
 print("SUMMARY TABLE")
 print("=" * 60)
@@ -307,9 +277,6 @@ summary_df = summary_df.round(4)
 print(summary_df.to_string())
 summary_df.to_csv(os.path.join(OUTPUT_DIR, "model_comparison_results.csv"))
 
-# ─────────────────────────────────────────────
-# 8. CONCLUSION
-# ─────────────────────────────────────────────
 print("\n" + "=" * 60)
 print("CONCLUSION – CHOSEN MODEL")
 print("=" * 60)
