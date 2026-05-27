@@ -51,6 +51,8 @@ Each row is a single planned stop event with the following key columns:
 Gradient Boosting was chosen for its lowest RMSE and best R², handling the zero-inflated,
 right-skewed target well. Top predictors: `arr_delay`, `hour`, `station_id`.
 
+<img width="2384" height="782" alt="model_comparison" src="https://github.com/user-attachments/assets/5a178b3e-4805-4d8f-bcce-e61048e851cf" />
+
 ---
 
 #### How to run
