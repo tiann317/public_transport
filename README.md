@@ -4,23 +4,18 @@
 
 # public_transport
 
-A university data science project analysing Swiss public transport stop-level delay data.
+A university data analytics mini project analysing public transport stop-level delay data.
 The dataset contains planned and actual arrival/departure times per stop,
-allowing both exploratory analysis and delay prediction.
+allowing delay prediction.
 
 ---
 
 #### Tasks
 
 **[Task 1 – Data Understanding & Cleanup](./task1_data_understanding/)**
-Load raw CSV stop records, remove duplicates and outliers, engineer time-based features,
-produce descriptive statistics and five diagnostic visualizations,
-and export a cleaned dataset for downstream modelling.
-
+Load raw CSV stop records, remove duplicates and outliers, include visualization and giving an insight into its most important features.
 **[Task 2 – Model Comparison](./task2_model_comparison/)**
-Train five regression models on the cleaned dataset to predict departure delay (`dep_delay`).
-Evaluate with 5-fold cross-validation and a hold-out test set,
-visualize results, and select the best model with justification.
+Compare different models and explain which model you have chosen and why it’s the best suited one for your project.
 
 ---
 
